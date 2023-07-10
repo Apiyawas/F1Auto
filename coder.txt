@@ -1,0 +1,339 @@
+
+Imports System.Runtime.InteropServices
+Imports System.Threading
+Imports System.Windows.Forms.Control
+Imports System.IO
+Public Class Form1
+    'Dim list As New List(Of String)
+    'Dim num As Integer
+    Dim name As String
+    Dim originalSize As Size
+    Dim state As Integer = 0
+    Dim stopclick As Boolean = False
+    'Dim fileContent As String = File.ReadAllText(filePath)
+    <DllImport("user32.dll", CharSet:=CharSet.Auto)>
+    Private Shared Function SendMessage(ByVal hWnd As IntPtr, ByVal Msg As String, ByVal wParam As Integer, ByVal lParam As Integer) As IntPtr
+    End Function
+    Dim targetClassName As String = "FPC Tester Software  (Ver 0.3)"
+    Public Declare Function SendMessage Lib "user32.dll" Alias "SendMessageA" (ByVal hWnd As Int32, ByVal wMsg As Int32, ByVal wParam As Int32, ByVal iParam As Int32) As Int32
+    Public Declare Function SendMessage Lib "user32.dll" Alias "SendMessageA" (ByVal hWnd As Int32, ByVal wMsg As Int32, ByVal wParam As Int32, ByVal iParam As String) As Int32
+    Public Declare Function SendMessage Lib "user32.dll" Alias "SendMessageA" (ByVal hWnd As Int32, ByVal wMsg As Int32, ByVal wParam As Int32, ByVal iParam As System.Text.StringBuilder) As Int32
+    <DllImport("user32")>
+    Private Shared Function FindWindow(ByVal lpClassName As String, ByVal lpWindowName As String) As IntPtr
+    End Function
+    <DllImport("user32")>
+    Private Shared Function SetParent(ByVal hWndChild As IntPtr, ByVal hWndNewParent As IntPtr) As IntPtr
+    End Function
+    <DllImport("user32.dll", SetLastError:=True, CharSet:=CharSet.Auto)>
+    Public Shared Function GetClassName(ByVal hWnd As IntPtr, ByVal lpClassName As System.Text.StringBuilder, ByVal nMaxCount As Integer) As Integer
+    End Function
+    Public Declare Function FindWindowEx Lib "user32.dll" Alias "FindWindowExA" (ByVal hWnd1 As Int32, ByVal hWnd2 As Int32, ByVal Ipsz1 As String, ByVal Ipsz2 As String) As Int32
+    Public Const WM_SETTEXT As Int32 = &HC
+    Private Const WM_GETTEXT As Int32 = &HD
+    Private Const WM_GETTEXTLENGTH As Int32 = &HE
+    <DllImport("user32.dll", SetLastError:=True)>
+    Private Shared Function SetForegroundWindow(ByVal hWnd As IntPtr) As Boolean
+    End Function
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles ButtonOn.Click
+        ' check test program open
+        Dim targetWindowHandle As IntPtr = FindWindow(Nothing, targetClassName)
+        Dim classNameBuilder As New System.Text.StringBuilder(256)
+        GetClassName(targetWindowHandle, classNameBuilder, classNameBuilder.Capacity)
+        Dim targetClassNameResult As String = classNameBuilder.ToString()
+        ' IF for the variable cut if the program did't open cut variable string go long that string variable and program will broken
+        If Not targetClassNameResult = "" Then
+            Dim cut As String = targetClassNameResult.Substring(23)
+            Dim combine As String = "WindowsForms10.EDIT" & cut
+            Dim Hwnd As IntPtr = FindWindow(Nothing, "FPC Tester Software  (Ver 0.3)")
+            Dim cHwnd As Integer = FindWindowEx(Hwnd, 0, combine, Nothing) 'panel test info
+            SetParent(Hwnd, IntPtr.Zero)
+            ' on button
+            TexBoxtSS.Text = "Running"
+            Button5.FlatStyle = FlatStyle.Standard
+            Button5.FlatAppearance.BorderColor = SystemColors.Control
+            Button5.FlatAppearance.BorderSize = 1
+            Button5.BackColor = SystemColors.Control
+            While True
+                Threading.Thread.Sleep(50)
+                Application.DoEvents()
+                ' Iterate through the list by using nested loops.
+                Dim letters() As Integer = {cHwnd}
+                Dim list As New List(Of String)
+                For Each letter In letters
+                    Threading.Thread.Sleep(50)
+                    Application.DoEvents()
+                    Dim ssf1 As Integer = 0
+                    ssf1 = letter
+                    Dim Count As Integer = 0
+                    Dim sb1 As System.Text.StringBuilder
+                    If (Not Hwnd = 0 And Not ssf1 = 0) Then
+                        Count = SendMessage(ssf1, WM_GETTEXTLENGTH, 0, 0)
+                        sb1 = New System.Text.StringBuilder(Count + 1)
+                        SendMessage(ssf1, WM_GETTEXT, sb1.Capacity, sb1)
+                        list.Add(sb1.ToString())
+                    Else
+                        list.Add("N/A")
+                    End If
+                Next
+                ' result test
+                If Hwnd <> IntPtr.Zero Then
+                    TextBox1.Text = list(0)
+                    ' auto F1
+                    If Not TextBox1.Text = "-" And Not TextBox1.Text = "" And state = 0 Then
+                        Dim startime As DateTime = DateTime.Now
+                        Dim endTime As DateTime = startime.AddSeconds(1)
+                        While DateTime.Now < endTime
+                            Me.Button5.PerformClick()
+                            Threading.Thread.Sleep(100)
+                        End While
+                        state = 1
+                    End If
+                    If TextBox1.Text = "-" And state = 1 Then
+                        Button5.FlatStyle = FlatStyle.Standard
+                        Button5.FlatAppearance.BorderColor = SystemColors.Control
+                        Button5.FlatAppearance.BorderSize = 1
+                        Button5.BackColor = SystemColors.Control
+                        state = 0
+                    End If
+                End If
+                If stopclick = True Then
+                    stopclick = False
+                    Exit While
+                End If
+            End While
+        Else
+            MsgBox("Please open the test program!!")
+        End If
+    End Sub
+    Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim targetWindowHandle As IntPtr = FindWindow(Nothing, targetClassName)
+        Dim classNameBuilder As New System.Text.StringBuilder(256)
+        GetClassName(targetWindowHandle, classNameBuilder, classNameBuilder.Capacity)
+        Dim targetClassNameResult As String = classNameBuilder.ToString()
+        If Not targetClassNameResult = "" Then
+            Application.DoEvents()
+            TexBoxtSS.Text = "Stop"
+            stopclick = True
+            TextBox1.Text = ""
+            Button5.FlatStyle = FlatStyle.Standard
+            Button5.FlatAppearance.BorderColor = SystemColors.Control
+            Button5.FlatAppearance.BorderSize = 1
+            Button5.BackColor = SystemColors.Control
+            Application.DoEvents()
+        Else
+            MsgBox("Please open the test program!!")
+        End If
+    End Sub
+    Private Sub Form1_FormClosed(sender As Object, e As FormClosedEventArgs) Handles MyBase.FormClosed
+        Application.DoEvents()
+        TexBoxtSS.Text = "Stop"
+        stopclick = True
+        Application.DoEvents()
+        Application.Exit()
+        TexBoxtSS.Text = "Stop"
+        stopclick = True
+        Application.DoEvents()
+        Application.Exit()
+        System.Environment.Exit(0)
+    End Sub
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        Dim Hwnd As IntPtr = FindWindow(Nothing, "FPC Tester Software  (Ver 0.3)")
+        Dim targetWindowHandle As IntPtr = FindWindow(Nothing, targetClassName)
+        Dim classNameBuilder As New System.Text.StringBuilder(256)
+        GetClassName(targetWindowHandle, classNameBuilder, classNameBuilder.Capacity)
+        Dim targetClassNameResult As String = classNameBuilder.ToString()
+        If Not targetClassNameResult = "" Then
+            SetParent(Hwnd, IntPtr.Zero)
+            System.Windows.Forms.SendKeys.Send("{F1}")
+            Button5.FlatStyle = FlatStyle.Flat
+            Button5.FlatAppearance.BorderColor = Color.Green
+            Button5.FlatAppearance.BorderSize = 2
+        Else
+            MsgBox("Please open the test program!!")
+        End If
+    End Sub
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
+        Dim Hwnd As IntPtr = FindWindow(Nothing, "FPC Tester Software  (Ver 0.3)")
+        Dim targetWindowHandle As IntPtr = FindWindow(Nothing, targetClassName)
+        Dim classNameBuilder As New System.Text.StringBuilder(256)
+        GetClassName(targetWindowHandle, classNameBuilder, classNameBuilder.Capacity)
+        Dim targetClassNameResult As String = classNameBuilder.ToString()
+        If Not targetClassNameResult = "" Then
+            SetParent(Hwnd, IntPtr.Zero)
+            System.Windows.Forms.SendKeys.Send("{F8}")
+            Button5.FlatStyle = FlatStyle.Standard
+            Button5.FlatAppearance.BorderColor = SystemColors.Control
+            Button5.FlatAppearance.BorderSize = 1
+            Button5.BackColor = SystemColors.Control
+        Else
+            MsgBox("Please open the test program!!")
+        End If
+    End Sub
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Dim Hwnd As IntPtr = FindWindow(Nothing, "FPC Tester Software  (Ver 0.3)")
+        Dim targetWindowHandle As IntPtr = FindWindow(Nothing, targetClassName)
+        Dim classNameBuilder As New System.Text.StringBuilder(256)
+        GetClassName(targetWindowHandle, classNameBuilder, classNameBuilder.Capacity)
+        Dim targetClassNameResult As String = classNameBuilder.ToString()
+        If Not targetClassNameResult = "" Then
+            SetParent(Hwnd, IntPtr.Zero)
+            System.Windows.Forms.SendKeys.Send("{F12}")
+            Button5.FlatStyle = FlatStyle.Standard
+            Button5.FlatAppearance.BorderColor = SystemColors.Control
+            Button5.FlatAppearance.BorderSize = 1
+            Button5.BackColor = SystemColors.Control
+        Else
+            MsgBox("Please open the test program!!")
+        End If
+    End Sub
+
+    Private Sub Button2_Click_1(sender As Object, e As EventArgs) Handles Button2.Click
+        name = File.ReadAllText(Application.StartupPath + "\setting_name.txt")
+        'list.Clear()
+        'For Each line As String In File.ReadLines(Application.StartupPath + "\setting_name.txt")
+        '    num = num + 1
+        '    list.Add(line)
+
+
+        'Next
+        'Dim result As String = String.Join(Environment.NewLine, list)
+        'MessageBox.Show(result)
+        'num = 0
+        If Me.Size = originalSize Then
+            Me.Size = New Size(765, 170)
+        Else
+            Me.Size = originalSize
+        End If
+    End Sub
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Me.FormBorderStyle = FormBorderStyle.FixedSingle
+        originalSize = Me.Size
+    End Sub
+
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{1}")
+        End If
+    End Sub
+
+    Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{2}")
+        End If
+    End Sub
+
+    Private Sub Button8_Click(sender As Object, e As EventArgs) Handles Button8.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{3}")
+        End If
+    End Sub
+
+    Private Sub Button9_Click(sender As Object, e As EventArgs) Handles Button9.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{4}")
+        End If
+    End Sub
+
+    Private Sub Button19_Click(sender As Object, e As EventArgs) Handles Button19.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{5}")
+        End If
+    End Sub
+
+    Private Sub Button10_Click(sender As Object, e As EventArgs) Handles Button10.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{6}")
+        End If
+    End Sub
+
+    Private Sub Button20_Click(sender As Object, e As EventArgs) Handles Button20.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{7}")
+        End If
+    End Sub
+
+    Private Sub Button11_Click(sender As Object, e As EventArgs) Handles Button11.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{8}")
+        End If
+    End Sub
+
+    Private Sub Button21_Click(sender As Object, e As EventArgs) Handles Button21.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{9}")
+        End If
+    End Sub
+
+    Private Sub Button12_Click(sender As Object, e As EventArgs) Handles Button12.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{0}")
+        End If
+    End Sub
+
+    Private Sub Button16_Click(sender As Object, e As EventArgs) Handles Button16.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{A}")
+        End If
+    End Sub
+
+    Private Sub Button17_Click(sender As Object, e As EventArgs) Handles Button17.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{B}")
+        End If
+    End Sub
+
+    Private Sub Button18_Click(sender As Object, e As EventArgs) Handles Button18.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{C}")
+        End If
+    End Sub
+
+    Private Sub Button15_Click(sender As Object, e As EventArgs) Handles Button15.Click
+        Dim k As IntPtr = FindWindow("notepad", Nothing)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{Enter}")
+        End If
+    End Sub
+
+    Private Sub Button14_Click(sender As Object, e As EventArgs) Handles Button14.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{Tab}")
+        End If
+    End Sub
+    Private Sub Button13_Click(sender As Object, e As EventArgs) Handles Button13.Click
+        Dim k As IntPtr = FindWindow(Nothing, name)
+        If k <> IntPtr.Zero Then
+            SetForegroundWindow(k)
+            System.Windows.Forms.SendKeys.SendWait("{BACKSPACE}")
+        End If
+    End Sub
+End Class
